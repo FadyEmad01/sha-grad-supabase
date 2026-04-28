@@ -39,6 +39,23 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6); */
+
+  /* Mapping the variables to Tailwind utilities */
+  --radius-none: var(--radius-none);
+  --radius-normal: var(--radius-normal);
+  --radius-medium: var(--radius-medium);
+  --radius-high: var(--radius-high);
+  --radius-full: var(--radius-full);
+
+  /* This keeps your existing Shadcn components working based on the active --radius */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -72,7 +89,6 @@
   --chart-3: oklch(0.442 0.017 285.786);
   --chart-4: oklch(0.37 0.013 285.805);
   --chart-5: oklch(0.274 0.006 286.033);
-  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.21 0.006 285.885);
@@ -81,6 +97,22 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  /* --radius: 0.625rem; */
+
+  /* 1. Individual Utility Presets */
+  --radius-none: 0rem;
+  --radius-normal: 0.325rem;
+  --radius-medium: 0.5rem;
+  --radius-high: 0.625rem;
+  --radius-full: 9999px;
+
+  /* 2. Global Active Radius (Uncomment the one you want to use) */
+  /* --radius: var(--radius-none);   */
+  --radius: var(--radius-normal);
+  /* Default */
+  /* --radius: var(--radius-medium); */
+  /* --radius: var(--radius-high);   */
+  /* --radius: var(--radius-full);   */
 }
 
 .dark {
@@ -121,12 +153,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
-  button:not(:disabled), [role="button"]:not(:disabled) {
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
   html {
     @apply font-sans;
   }
