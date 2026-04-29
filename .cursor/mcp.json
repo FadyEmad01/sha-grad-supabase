@@ -9,6 +9,16 @@
     },
     "supabase": {
       "url": "https://mcp.supabase.com/mcp"
+    },
+    "next-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "next-devtools-mcp@latest"
+      ]
+    },
+    "vercel": {
+      "url": "https://mcp.vercel.com"
     }
   }
 }

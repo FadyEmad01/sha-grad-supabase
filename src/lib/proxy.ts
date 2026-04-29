@@ -49,6 +49,35 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Onboarding guard — only for authenticated users
+  if (user) {
+    const { data: student } = await supabase
+      .from('students')
+      .select('is_onboarded')
+      .eq('auth_id', user.sub)
+      .single()
+
+    const isOnboarded = student?.is_onboarded === true
+
+    // Already onboarded users cannot access /onboarding
+    if (isOnboarded && request.nextUrl.pathname.startsWith('/onboarding')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/protected'
+      return NextResponse.redirect(url)
+    }
+
+    // Not onboarded users must go to /onboarding (except auth routes)
+    if (
+      !isOnboarded &&
+      !request.nextUrl.pathname.startsWith('/onboarding') &&
+      !request.nextUrl.pathname.startsWith('/auth')
+    ) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

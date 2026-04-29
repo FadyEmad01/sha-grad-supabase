@@ -3,12 +3,31 @@
   "mcp": {
     "shadcn": {
       "type": "local",
-      "command": ["npx", "shadcn@latest", "mcp"],
+      "command": [
+        "npx",
+        "shadcn@latest",
+        "mcp"
+      ],
       "enabled": true
     },
     "supabase": {
       "type": "remote",
       "url": "https://mcp.supabase.com/mcp",
+      "enabled": true
+    },
+    "next-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "next-devtools-mcp@latest"
+      ],
+      "enabled": true,
+      "environment": {}
+    },
+    "vercel": {
+      "type": "remote",
+      "url": "https://mcp.vercel.com",
       "enabled": true
     }
   }
