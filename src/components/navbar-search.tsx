@@ -244,7 +244,7 @@ export default function NavbarSearch() {
                       onSelect={() => handleSelect("student", student)}
                       className="cursor-pointer"
                     >
-                      <Avatar className="mr-2 size-6 shrink-0">
+                      <Avatar className="mr-2 size-8 shrink-0">
                         <AvatarImage
                           src={getStudentAvatarUrl(student)}
                           alt={student.full_name ?? ""}
@@ -290,7 +290,7 @@ export default function NavbarSearch() {
                       onSelect={() => handleSelect("team", team)}
                       className="cursor-pointer"
                     >
-                      <Avatar className="mr-2 size-6 shrink-0">
+                      <Avatar className="mr-2 size-8 shrink-0">
                         <AvatarImage
                           src={getTeamAvatarUrl(team)}
                           alt={team.name}
