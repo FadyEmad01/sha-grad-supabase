@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon, Settings2 } from "lucide-react";
+import { LogOutIcon, Settings2, UserCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -75,7 +75,7 @@ export default function NavbarUserMenu({
           className="flex min-w-0 flex-col gap-0.5 px-4 py-1"
           asChild
         >
-          <Link href="/protected" className="cursor-pointer flex items-start">
+          <Link href="/profile" className="cursor-pointer flex items-start">
             <span className="truncate font-medium text-foreground text-sm">
               {displayName}
             </span>
@@ -88,6 +88,16 @@ export default function NavbarUserMenu({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/profile" className="cursor-pointer">
+              <UserCircle2
+                aria-hidden="true"
+                className="opacity-60"
+                size={16}
+              />
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/settings" className="cursor-pointer">
               <Settings2 aria-hidden="true" className="opacity-60" size={16} />

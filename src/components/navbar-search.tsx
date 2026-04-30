@@ -168,9 +168,9 @@ export default function NavbarSearch() {
       setOpen(false);
       setQuery("");
       if (type === "student") {
-        router.push(`/profile?id=${(item as StudentResult).id}`);
+        router.push(`/profile/${(item as StudentResult).id}`);
       } else {
-        router.push(`/teams?id=${(item as TeamResult).id}`);
+        router.push(`/teams/${(item as TeamResult).id}`);
       }
     },
     [router],
