@@ -33,7 +33,7 @@ export default function NavbarContent({
     <header className="border-b px-4 md:px-6">
       <div className="flex h-16 items-center justify-between gap-4">
         <div className="flex flex-1 items-center gap-2">
-          <Popover open={mobileOpen} onOpenChange={setMobileOpen}>
+          {/* <Popover open={mobileOpen} onOpenChange={setMobileOpen}>
             <PopoverTrigger asChild>
               <Button
                 className="group size-8 md:hidden"
@@ -71,7 +71,7 @@ export default function NavbarContent({
             <PopoverContent align="start" className="w-36 p-1 md:hidden">
               <div className="py-1.5 text-sm text-muted-foreground">Menu</div>
             </PopoverContent>
-          </Popover>
+          </Popover> */}
 
           <div className="flex items-center">
             <Link className="text-primary hover:text-primary/90" href="/">

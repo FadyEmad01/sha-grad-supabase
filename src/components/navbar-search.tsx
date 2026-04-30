@@ -219,8 +219,8 @@ export default function NavbarSearch() {
           onPointerDownOutside={(e) => e.preventDefault()}
           avoidCollisions={false}
         >
-          <Command className="rounded-none border-none shadow-none">
-            <CommandInput
+          <Command className="border-none shadow-none">
+            {/* <CommandInput
               value={query}
               onValueChange={(q) => {
                 setQuery(q);
@@ -228,7 +228,7 @@ export default function NavbarSearch() {
               }}
               placeholder="Search students or teams..."
               className="h-9 border-0 focus-visible:ring-0"
-            />
+            /> */}
             <CommandList className="max-h-72">
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
                 {loading ? "Searching..." : "No results found"}
