@@ -1,22 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useStudentProfile } from "./use-student-profile";
 
-import { createClient } from '@/lib/client'
+export function useCurrentUserName() {
+  const { student, loading } = useStudentProfile();
 
-export const useCurrentUserName = () => {
-  const [name, setName] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchProfileName = async () => {
-      const { data, error } = await createClient().auth.getSession()
-      if (error) {
-        console.error(error)
-      }
-
-      setName(data.session?.user.user_metadata.full_name ?? '?')
-    }
-
-    fetchProfileName()
-  }, [])
-
-  return name || '?'
+  if (loading) return "?";
+  return student?.full_name || student?.nickname || "";
 }

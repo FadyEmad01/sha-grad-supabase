@@ -4,7 +4,7 @@ import { PostgrestQueryBuilder, type PostgrestClientOptions } from '@supabase/po
 import { type SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/client'
 
 const supabase = createClient()
 

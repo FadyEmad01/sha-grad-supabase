@@ -1,21 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useStudentProfile } from "./use-student-profile";
 
-import { createClient } from '@/lib/client'
+export function useCurrentUserImage() {
+  const { student } = useStudentProfile();
 
-export const useCurrentUserImage = () => {
-  const [image, setImage] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchUserImage = async () => {
-      const { data, error } = await createClient().auth.getSession()
-      if (error) {
-        console.error(error)
-      }
-
-      setImage(data.session?.user.user_metadata.avatar_url ?? null)
-    }
-    fetchUserImage()
-  }, [])
-
-  return image
+  return student?.avatar_url ?? null;
 }
