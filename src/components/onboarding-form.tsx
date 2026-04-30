@@ -97,335 +97,368 @@
 //   )
 // }
 
+"use client";
 
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import {
+  BookOpen,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  Plus,
+  Upload,
+  User,
+  Users,
+  X,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  User,
-  BookOpen,
-  Users,
-  Globe,
-  CheckCircle2,
-  Upload,
-  Plus,
-  X,
-  ChevronRight,
-  ChevronLeft,
-} from 'lucide-react'
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { createClient } from "@/lib/client";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface Team {
-  id: string
-  name: string
-  project_name: string | null
-  team_number: number | null
-}
-
 interface Specialty {
-  id: number
-  name: string
+  id: number;
+  name: string;
 }
 
 interface SocialLink {
-  platform: string
-  url: string
+  platform: string;
+  url: string;
 }
 
 const SOCIAL_PLATFORMS = [
-  'GitHub',
-  'LinkedIn',
-  'Twitter',
-  'Instagram',
-  'Behance',
-  'Dribbble',
-  'Portfolio',
-  'Other',
-]
+  "GitHub",
+  "LinkedIn",
+  "Twitter",
+  "Instagram",
+  "Behance",
+  "Dribbble",
+  "Portfolio",
+  "Other",
+];
 
 const PRIVACY_OPTIONS = [
-  { value: 'public', label: 'Public — Anyone can view your profile' },
-  { value: 'students_only', label: 'Students Only — Only students can view' },
-  { value: 'private', label: 'Private — Only you can view' },
-]
+  { value: "public", label: "Public — Anyone can view your profile" },
+  { value: "students_only", label: "Students Only — Only students can view" },
+  { value: "private", label: "Private — Only you can view" },
+];
 
 const STEPS = [
-  { id: 1, label: 'Profile',   icon: User      },
-  { id: 2, label: 'Academic',  icon: BookOpen  },
-  { id: 3, label: 'Team',      icon: Users     },
-  { id: 4, label: 'Links',     icon: Globe     },
-  { id: 5, label: 'Review',    icon: CheckCircle2 },
-]
+  { id: 1, label: "Profile", icon: User },
+  { id: 2, label: "Academic", icon: BookOpen },
+  { id: 3, label: "Team", icon: Users },
+  { id: 4, label: "Links", icon: Globe },
+  { id: 5, label: "Review", icon: CheckCircle2 },
+];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function OnboardingForm() {
-  const supabase = createClient()
-  const router   = useRouter()
+  const supabase = createClient();
+  const router = useRouter();
 
   // Meta
-  const [step,      setStep]      = useState(1)
-  const [userId,    setUserId]    = useState('')
-  const [studentId, setStudentId] = useState('')
-  const [loading,   setLoading]   = useState(false)
-  const [error,     setError]     = useState('')
+  const [step, setStep] = useState(1);
+  const [userId, setUserId] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Step 1 — Profile
-  const [fullName,    setFullName]    = useState('')
-  const [nickname,    setNickname]    = useState('')
-  const [bio,         setBio]         = useState('')
-  const [phone,       setPhone]       = useState('')
-  const [location,    setLocation]    = useState('')
-  const [avatarUrl,   setAvatarUrl]   = useState('')
-  const [avatarFile,  setAvatarFile]  = useState<File | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState('')
+  const [fullName, setFullName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [bio, setBio] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
 
   // Step 2 — Academic
-  const [graduationYear,              setGraduationYear]              = useState('')
-  const [graduationProjectSpecialty,  setGraduationProjectSpecialty]  = useState('')
-  const [specialties,                 setSpecialties]                 = useState<Specialty[]>([])
-  const [selectedSpecialties,         setSelectedSpecialties]         = useState<number[]>([])
-  const [privacySetting,              setPrivacySetting]              = useState('public')
+  const [graduationYear, setGraduationYear] = useState("");
+  const [graduationProjectSpecialty, setGraduationProjectSpecialty] =
+    useState("");
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [selectedSpecialties, setSelectedSpecialties] = useState<number[]>([]);
+  const [privacySetting, setPrivacySetting] = useState("public");
 
   // Step 3 — Team
-  const [teams,       setTeams]     = useState<Team[]>([])
-  const [teamId,      setTeamId]    = useState('')
-  const [website,     setWebsite]   = useState('')
+  const [teamNumberInput, setTeamNumberInput] = useState("");
+  const [website, setWebsite] = useState("");
 
   // Step 4 — Social Links
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
-    { platform: 'GitHub',   url: '' },
-    { platform: 'LinkedIn', url: '' },
-  ])
+    { platform: "GitHub", url: "" },
+    { platform: "LinkedIn", url: "" },
+  ]);
 
   // ── Load user + reference data ────────────────────────────────────────────
 
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push('/auth/login')
-        return
+        router.push("/auth/login");
+        return;
       }
 
-      setUserId(user.id)
+      setUserId(user.id);
 
       // Fetch existing student row
       const { data: student } = await supabase
-        .from('students')
-        .select('id, full_name, nickname, bio, phone, location, avatar_url, graduation_year, graduation_project_specialty, privacy_setting, team_id, website, social_links')
-        .eq('auth_id', user.id)
-        .single()
+        .from("students")
+        .select(
+          "id, full_name, nickname, bio, phone, location, avatar_url, graduation_year, graduation_project_specialty, privacy_setting, team_id, website, social_links",
+        )
+        .eq("auth_id", user.id)
+        .single();
 
       if (student) {
-        setStudentId(student.id)
-        setFullName(student.full_name ?? '')
-        setNickname(student.nickname ?? '')
-        setBio(student.bio ?? '')
-        setPhone(student.phone ?? '')
-        setLocation(student.location ?? '')
-        setAvatarUrl(student.avatar_url ?? '')
-        setAvatarPreview(student.avatar_url ?? '')
-        setGraduationYear(student.graduation_year?.toString() ?? '')
-        setGraduationProjectSpecialty(student.graduation_project_specialty ?? '')
-        setPrivacySetting(student.privacy_setting ?? 'public')
-        setTeamId(student.team_id ?? '')
-        setWebsite(student.website ?? '')
+        setStudentId(student.id);
+        setFullName(student.full_name ?? "");
+        setNickname(student.nickname ?? "");
+        setBio(student.bio ?? "");
+        setPhone(student.phone ?? "");
+        setLocation(student.location ?? "");
+        setAvatarUrl(student.avatar_url ?? "");
+        setAvatarPreview(student.avatar_url ?? "");
+        setGraduationYear("2026");
+        setGraduationProjectSpecialty(
+          student.graduation_project_specialty ?? "",
+        );
+        setPrivacySetting(student.privacy_setting ?? "public");
+        setTeamNumberInput(student.team_id ? "" : "");
+        setWebsite(student.website ?? "");
 
-        if (Array.isArray(student.social_links) && student.social_links.length > 0) {
-          setSocialLinks(student.social_links)
+        if (
+          Array.isArray(student.social_links) &&
+          student.social_links.length > 0
+        ) {
+          setSocialLinks(student.social_links);
         }
       }
 
-      // Fetch teams
-      const { data: teamsData } = await supabase
-        .from('teams')
-        .select('id, name, project_name, team_number')
-        .order('team_number')
-
-      if (teamsData) setTeams(teamsData)
-
       // Fetch specialties
       const { data: specialtiesData } = await supabase
-        .from('specialties')
-        .select('id, name')
-        .order('name')
+        .from("specialties")
+        .select("id, name")
+        .order("name");
 
-      if (specialtiesData) setSpecialties(specialtiesData)
+      if (specialtiesData) setSpecialties(specialtiesData);
 
       // Fetch already selected specialties
       if (student?.id) {
         const { data: studentSpecialties } = await supabase
-          .from('student_specialties')
-          .select('specialty_id')
-          .eq('student_id', student.id)
+          .from("student_specialties")
+          .select("specialty_id")
+          .eq("student_id", student.id);
 
         if (studentSpecialties) {
           setSelectedSpecialties(
-            studentSpecialties.map((s) => s.specialty_id as number)
-          )
+            studentSpecialties.map((s) => s.specialty_id as number),
+          );
         }
       }
-    }
+    };
 
-    init()
-  }, [])
+    init();
+  }, []);
 
   // ── Avatar upload ─────────────────────────────────────────────────────────
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setAvatarFile(file)
-    setAvatarPreview(URL.createObjectURL(file))
-  }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
 
   const uploadAvatar = async (): Promise<string | null> => {
-    if (!avatarFile || !userId) return avatarUrl || null
+    if (!avatarFile || !userId) return avatarUrl || null;
 
-    const ext      = avatarFile.name.split('.').pop()
+    const ext = avatarFile.name.split(".").pop();
     // const filePath = `avatars/${userId}.${ext}`
-    const filePath = `avatars/${userId}/${userId}.${ext}`
+    const filePath = `avatars/${userId}/${userId}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('sha-gallery')
-      .upload(filePath, avatarFile, { upsert: true })
+      .from("sha-gallery")
+      .upload(filePath, avatarFile, { upsert: true });
 
     if (uploadError) {
-      console.error(uploadError)
-      return null
+      console.error(uploadError);
+      return null;
     }
 
-    const { data } = supabase.storage.from('sha-gallery').getPublicUrl(filePath)
-    return data.publicUrl
-  }
+    const { data } = supabase.storage
+      .from("sha-gallery")
+      .getPublicUrl(filePath);
+    return data.publicUrl;
+  };
 
   // ── Social links helpers ──────────────────────────────────────────────────
 
   const addSocialLink = () =>
-    setSocialLinks((prev) => [...prev, { platform: 'GitHub', url: '' }])
+    setSocialLinks((prev) => [...prev, { platform: "GitHub", url: "" }]);
 
   const removeSocialLink = (index: number) =>
-    setSocialLinks((prev) => prev.filter((_, i) => i !== index))
+    setSocialLinks((prev) => prev.filter((_, i) => i !== index));
 
-  const updateSocialLink = (index: number, field: keyof SocialLink, value: string) =>
+  const updateSocialLink = (
+    index: number,
+    field: keyof SocialLink,
+    value: string,
+  ) =>
     setSocialLinks((prev) =>
-      prev.map((link, i) => (i === index ? { ...link, [field]: value } : link))
-    )
+      prev.map((link, i) => (i === index ? { ...link, [field]: value } : link)),
+    );
 
   // ── Specialty toggle ──────────────────────────────────────────────────────
 
   const toggleSpecialty = (id: number) =>
     setSelectedSpecialties((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    )
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    );
 
   // ── Finish ────────────────────────────────────────────────────────────────
 
   const finish = async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
       // 1. Upload avatar if changed
-      const finalAvatarUrl = await uploadAvatar()
+      const finalAvatarUrl = await uploadAvatar();
 
       // 2. Filter out empty social links
-      const filteredLinks = socialLinks.filter((l) => l.url.trim() !== '')
+      const filteredLinks = socialLinks.filter((l) => l.url.trim() !== "");
 
-      // 3. Update students row
-      const { error: updateError } = await supabase
-        .from('students')
-        .update({
-          full_name:                    fullName,
-          nickname:                     nickname  || null,
-          bio:                          bio       || null,
-          phone:                        phone     || null,
-          location:                     location  || null,
-          website:                      website   || null,
-          avatar_url:                   finalAvatarUrl,
-          graduation_year:              graduationYear ? parseInt(graduationYear) : null,
-          graduation_project_specialty: graduationProjectSpecialty || null,
-          privacy_setting:              privacySetting,
-          team_id:                      teamId    || null,
-          social_links:                 filteredLinks,
-          is_onboarded:                 true,
-          updated_at:                   new Date().toISOString(),
-        })
-        .eq('auth_id', userId)
+      // 3. Resolve or create team
+      let resolvedTeamId: string | null = null;
+      const teamNumber = parseInt(teamNumberInput, 10);
 
-      if (updateError) throw updateError
+      if (
+        teamNumberInput.trim() &&
+        !Number.isNaN(teamNumber) &&
+        teamNumber > 0
+      ) {
+        const { data: existingTeam } = await supabase
+          .from("teams")
+          .select("id")
+          .eq("team_number", teamNumber)
+          .single();
 
-      // 4. Sync student_specialties
-      if (studentId) {
-        await supabase
-          .from('student_specialties')
-          .delete()
-          .eq('student_id', studentId)
+        if (existingTeam) {
+          resolvedTeamId = existingTeam.id;
+        } else {
+          const { data: newTeam, error: teamError } = await supabase
+            .from("teams")
+            .insert({
+              team_number: teamNumber,
+              name: `Team ${teamNumber}`,
+            })
+            .select("id")
+            .single();
 
-        if (selectedSpecialties.length > 0) {
-          await supabase.from('student_specialties').insert(
-            selectedSpecialties.map((sid) => ({
-              student_id:   studentId,
-              specialty_id: sid,
-            }))
-          )
+          if (teamError) throw teamError;
+          resolvedTeamId = newTeam.id;
         }
       }
 
-      router.push('/protected')
+      // 4. Update students row
+      const { error: updateError } = await supabase
+        .from("students")
+        .update({
+          full_name: fullName,
+          nickname: nickname || null,
+          bio: bio || null,
+          phone: phone || null,
+          location: location || null,
+          website: website || null,
+          avatar_url: finalAvatarUrl,
+          graduation_year: 2026,
+          graduation_project_specialty: graduationProjectSpecialty || null,
+          privacy_setting: privacySetting,
+          team_id: resolvedTeamId,
+          social_links: filteredLinks,
+          is_onboarded: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("auth_id", userId);
+
+      if (updateError) throw updateError;
+
+      // 5. Sync student_specialties
+      if (studentId) {
+        await supabase
+          .from("student_specialties")
+          .delete()
+          .eq("student_id", studentId);
+
+        if (selectedSpecialties.length > 0) {
+          await supabase.from("student_specialties").insert(
+            selectedSpecialties.map((sid) => ({
+              student_id: studentId,
+              specialty_id: sid,
+            })),
+          );
+        }
+      }
+
+      router.push("/protected");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // ── Validation ────────────────────────────────────────────────────────────
 
   const canProceed = (): boolean => {
-    if (step === 1) return fullName.trim().length > 0
-    return true
-  }
+    if (step === 1) return fullName.trim().length > 0;
+    return true;
+  };
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
-  const progress       = ((step - 1) / (STEPS.length - 1)) * 100
-  const selectedTeam   = teams.find((t) => t.id === teamId)
-  const currentYear    = new Date().getFullYear()
-  const graduationYears = Array.from({ length: 6 }, (_, i) =>
-    (currentYear + i).toString()
-  )
+  const progress = ((step - 1) / (STEPS.length - 1)) * 100;
 
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
-
         {/* ── Header ── */}
         <div className="text-center space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome aboard 👋</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome aboard 👋
+          </h1>
           <p className="text-muted-foreground">
             Let&apos;s set up your profile — it only takes a minute.
           </p>
@@ -441,19 +474,19 @@ export default function OnboardingForm() {
                 onClick={() => id < step && setStep(id)}
                 className={`flex flex-col items-center gap-1 text-xs transition-colors ${
                   id === step
-                    ? 'text-primary font-semibold'
+                    ? "text-primary font-semibold"
                     : id < step
-                    ? 'text-primary/70 cursor-pointer hover:text-primary'
-                    : 'text-muted-foreground cursor-default'
+                      ? "text-primary/70 cursor-pointer hover:text-primary"
+                      : "text-muted-foreground cursor-default"
                 }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
                     id === step
-                      ? 'border-primary bg-primary text-primary-foreground'
+                      ? "border-primary bg-primary text-primary-foreground"
                       : id < step
-                      ? 'border-primary/70 bg-primary/10 text-primary'
-                      : 'border-muted-foreground/30 bg-muted text-muted-foreground'
+                        ? "border-primary/70 bg-primary/10 text-primary"
+                        : "border-muted-foreground/30 bg-muted text-muted-foreground"
                   }`}
                 >
                   {id < step ? (
@@ -470,7 +503,6 @@ export default function OnboardingForm() {
 
         {/* ── Card ── */}
         <Card className="shadow-lg">
-
           {/* ════════════════════════════════════════
               STEP 1 — Profile Info
           ════════════════════════════════════════ */}
@@ -492,7 +524,7 @@ export default function OnboardingForm() {
                   <Avatar className="w-24 h-24 ring-2 ring-primary/20">
                     <AvatarImage src={avatarPreview} />
                     <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                      {fullName?.[0]?.toUpperCase() ?? '?'}
+                      {fullName?.[0]?.toUpperCase() ?? "?"}
                     </AvatarFallback>
                   </Avatar>
                   <Label
@@ -601,18 +633,11 @@ export default function OnboardingForm() {
                   {/* Graduation Year */}
                   <div className="space-y-2">
                     <Label>Graduation Year</Label>
-                    <Select value={graduationYear} onValueChange={setGraduationYear}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {graduationYears.map((y) => (
-                          <SelectItem key={y} value={y}>
-                            {y}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      value="2026"
+                      disabled
+                      className="bg-muted/50 cursor-not-allowed"
+                    />
                   </div>
 
                   {/* Graduation Project Specialty */}
@@ -622,7 +647,9 @@ export default function OnboardingForm() {
                       id="gps"
                       placeholder="e.g. Web Development"
                       value={graduationProjectSpecialty}
-                      onChange={(e) => setGraduationProjectSpecialty(e.target.value)}
+                      onChange={(e) =>
+                        setGraduationProjectSpecialty(e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -636,18 +663,20 @@ export default function OnboardingForm() {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {specialties.map((s) => {
-                        const active = selectedSpecialties.includes(s.id)
+                        const active = selectedSpecialties.includes(s.id);
                         return (
                           <Badge
                             key={s.id}
-                            variant={active ? 'default' : 'outline'}
+                            variant={active ? "default" : "outline"}
                             className="cursor-pointer select-none transition-colors"
                             onClick={() => toggleSpecialty(s.id)}
                           >
-                            {active && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                            {active && (
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                            )}
                             {s.name}
                           </Badge>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -656,7 +685,10 @@ export default function OnboardingForm() {
                 {/* Privacy */}
                 <div className="space-y-2">
                   <Label>Profile Privacy</Label>
-                  <Select value={privacySetting} onValueChange={setPrivacySetting}>
+                  <Select
+                    value={privacySetting}
+                    onValueChange={setPrivacySetting}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -689,41 +721,21 @@ export default function OnboardingForm() {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {/* Team select */}
+                {/* Team number input */}
                 <div className="space-y-2">
-                  <Label>Graduation Team</Label>
-                  <Select value={teamId} onValueChange={setTeamId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your team" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teams.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          <span className="font-medium">
-                            {t.team_number ? `#${t.team_number} — ` : ''}
-                            {t.name}
-                          </span>
-                          {t.project_name && (
-                            <span className="text-muted-foreground ml-1 text-xs">
-                              ({t.project_name})
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Selected team preview */}
-                  {selectedTeam && (
-                    <div className="rounded-lg border bg-muted/40 p-3 space-y-1 text-sm mt-2">
-                      <p className="font-semibold">{selectedTeam.name}</p>
-                      {selectedTeam.project_name && (
-                        <p className="text-muted-foreground">
-                          Project: {selectedTeam.project_name}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  <Label htmlFor="teamNumber">Graduation Team Number</Label>
+                  <Input
+                    id="teamNumber"
+                    type="number"
+                    min={1}
+                    placeholder="e.g. 3"
+                    value={teamNumberInput}
+                    onChange={(e) => setTeamNumberInput(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter your team number. If it doesn&apos;t exist, a new team
+                    will be created automatically.
+                  </p>
                 </div>
 
                 {/* Website */}
@@ -752,7 +764,8 @@ export default function OnboardingForm() {
                   Social Links
                 </CardTitle>
                 <CardDescription>
-                  Add links to your social profiles. Skip any you don&apos;t have.
+                  Add links to your social profiles. Skip any you don&apos;t
+                  have.
                 </CardDescription>
               </CardHeader>
 
@@ -762,7 +775,9 @@ export default function OnboardingForm() {
                     <div className="w-36 shrink-0">
                       <Select
                         value={link.platform}
-                        onValueChange={(v) => updateSocialLink(i, 'platform', v)}
+                        onValueChange={(v) =>
+                          updateSocialLink(i, "platform", v)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -781,7 +796,9 @@ export default function OnboardingForm() {
                       className="flex-1"
                       placeholder={`https://${link.platform.toLowerCase()}.com/…`}
                       value={link.url}
-                      onChange={(e) => updateSocialLink(i, 'url', e.target.value)}
+                      onChange={(e) =>
+                        updateSocialLink(i, "url", e.target.value)
+                      }
                     />
 
                     <Button
@@ -829,16 +846,20 @@ export default function OnboardingForm() {
                   <Avatar className="w-16 h-16 ring-2 ring-primary/20">
                     <AvatarImage src={avatarPreview} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                      {fullName?.[0]?.toUpperCase() ?? '?'}
+                      {fullName?.[0]?.toUpperCase() ?? "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-lg">{fullName || '—'}</p>
+                    <p className="font-semibold text-lg">{fullName || "—"}</p>
                     {nickname && (
-                      <p className="text-muted-foreground text-sm">@{nickname}</p>
+                      <p className="text-muted-foreground text-sm">
+                        @{nickname}
+                      </p>
                     )}
                     {location && (
-                      <p className="text-muted-foreground text-sm">{location}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {location}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -846,12 +867,18 @@ export default function OnboardingForm() {
                 <Separator />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <ReviewRow label="Phone"              value={phone} />
-                  <ReviewRow label="Graduation Year"    value={graduationYear} />
-                  <ReviewRow label="Project Specialty"  value={graduationProjectSpecialty} />
-                  <ReviewRow label="Privacy"            value={privacySetting} />
-                  <ReviewRow label="Team"               value={selectedTeam?.name} />
-                  <ReviewRow label="Website"            value={website} />
+                  <ReviewRow label="Phone" value={phone} />
+                  <ReviewRow label="Graduation Year" value="2026" />
+                  <ReviewRow
+                    label="Project Specialty"
+                    value={graduationProjectSpecialty}
+                  />
+                  <ReviewRow label="Privacy" value={privacySetting} />
+                  <ReviewRow
+                    label="Team"
+                    value={teamNumberInput ? `Team ${teamNumberInput}` : null}
+                  />
+                  <ReviewRow label="Website" value={website} />
                 </div>
 
                 {bio && (
@@ -868,12 +895,12 @@ export default function OnboardingForm() {
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {selectedSpecialties.map((id) => {
-                        const s = specialties.find((sp) => sp.id === id)
+                        const s = specialties.find((sp) => sp.id === id);
                         return s ? (
                           <Badge key={id} variant="secondary">
                             {s.name}
                           </Badge>
-                        ) : null
+                        ) : null;
                       })}
                     </div>
                   </div>
@@ -889,8 +916,10 @@ export default function OnboardingForm() {
                         .filter((l) => l.url)
                         .map((l, i) => (
                           <p key={i} className="text-sm">
-                            <span className="font-medium">{l.platform}:</span>{' '}
-                            <span className="text-muted-foreground">{l.url}</span>
+                            <span className="font-medium">{l.platform}:</span>{" "}
+                            <span className="text-muted-foreground">
+                              {l.url}
+                            </span>
                           </p>
                         ))}
                     </div>
@@ -929,32 +958,27 @@ export default function OnboardingForm() {
               </Button>
             ) : (
               <Button onClick={finish} disabled={loading} className="gap-1">
-                {loading ? 'Saving…' : 'Finish & Go to Dashboard'}
+                {loading ? "Saving…" : "Finish & Go to Dashboard"}
                 {!loading && <CheckCircle2 className="w-4 h-4" />}
               </Button>
             )}
           </div>
         </Card>
-
       </div>
     </div>
-  )
+  );
 }
 
 // ─── Helper sub-component ─────────────────────────────────────────────────────
 
-function ReviewRow({
-  label,
-  value,
-}: {
-  label: string
-  value?: string | null
-}) {
-  if (!value) return null
+function ReviewRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
   return (
     <div className="space-y-0.5">
-      <p className="text-muted-foreground text-xs uppercase tracking-wide">{label}</p>
+      <p className="text-muted-foreground text-xs uppercase tracking-wide">
+        {label}
+      </p>
       <p className="font-medium">{value}</p>
     </div>
-  )
+  );
 }
