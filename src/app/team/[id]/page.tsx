@@ -124,7 +124,7 @@ export default async function TeamPage({
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="sm">
-                    <Link href="/protected">
+                    <Link href="/explore">
                       <Globe className="w-3.5 h-3.5 mr-1.5" />
                       Explore Teams
                     </Link>

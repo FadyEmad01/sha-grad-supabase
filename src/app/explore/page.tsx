@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 import Container from "@/components/layout/container";
 import Navbar from "@/components/navbar";
 import TeamsCarousel from "@/components/teamCarousel";
+import CommunityMasonryGrid from "@/components/community-masonry-grid";
 import { createClient } from "@/lib/server";
 
-export default async function ProtectedPage() {
+export default async function ExplorePage() {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getClaims();
@@ -42,9 +43,10 @@ export default async function ProtectedPage() {
                 Community
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Members across all teams
+                Photos from all teams
               </p>
             </div>
+            <CommunityMasonryGrid />
           </Container>
         </section>
       </main>

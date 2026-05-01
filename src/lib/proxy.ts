@@ -62,7 +62,7 @@ export async function updateSession(request: NextRequest) {
     // Already onboarded users cannot access /onboarding
     if (isOnboarded && request.nextUrl.pathname.startsWith('/onboarding')) {
       const url = request.nextUrl.clone()
-      url.pathname = '/protected'
+      url.pathname = '/explore'
       return NextResponse.redirect(url)
     }
 

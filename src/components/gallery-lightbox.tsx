@@ -95,7 +95,7 @@ export default function GalleryLightbox({
   if (!current) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center backdrop-blur-2xl">
       {/* Close */}
       <button
         type="button"
@@ -153,7 +153,7 @@ export default function GalleryLightbox({
         </div>
 
         {/* Actions */}
-        {isOwnProfile && (
+        {/* {isOwnProfile && (
           <div className="flex gap-2 mt-4">
             <Button
               variant="outline"
@@ -180,7 +180,7 @@ export default function GalleryLightbox({
               <Trash2 className="w-3.5 h-3.5" /> Delete
             </Button>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

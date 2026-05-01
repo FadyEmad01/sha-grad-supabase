@@ -45,7 +45,7 @@
 //       })
 //       .eq('auth_id', userId)
 
-//     router.push('/protected')
+//     router.push('/explore')
 //   }
 
 //   return (
@@ -430,7 +430,7 @@ export default function OnboardingForm() {
         }
       }
 
-      router.push("/protected");
+      router.push("/explore");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

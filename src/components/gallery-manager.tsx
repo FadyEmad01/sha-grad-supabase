@@ -1,7 +1,9 @@
 "use client";
 
-import { Eye, EyeOff, Plus, Trash2, Upload, X } from "lucide-react";
+import { useCallback } from "react";
+import { Eye, EyeOff, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,10 +35,9 @@ export default function GalleryManager({ studentId }: { studentId: string }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Upload state
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadPreview, setUploadPreview] = useState("");
-  const [uploadCaption, setUploadCaption] = useState("");
+  // Upload state - now supports multiple files
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [uploadPreviews, setUploadPreviews] = useState<string[]>([]);
   const [uploadPublic, setUploadPublic] = useState(true);
 
   useEffect(() => {
@@ -64,42 +65,76 @@ export default function GalleryManager({ studentId }: { studentId: string }) {
     loadImages();
   }, [studentId, supabase.storage]);
 
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      uploadPreviews.forEach(preview => URL.revokeObjectURL(preview));
+    };
+  }, []);
+
+  // Dropzone for drag & drop
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
+    setUploadFiles(prev => [...prev, ...acceptedFiles]);
+    setUploadPreviews(prev => [...prev, ...newPreviews]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': [] },
+    multiple: true,
+  });
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadFile(file);
-    setUploadPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setUploadFiles(prev => [...prev, ...files]);
+    setUploadPreviews(prev => [...prev, ...newPreviews]);
   };
 
   const handleUpload = async () => {
-    if (!uploadFile || !studentId) return;
+    if (uploadFiles.length === 0 || !studentId) return;
     setUploading(true);
 
     try {
-      const ext = uploadFile.name.split(".").pop();
-      const imageId = crypto.randomUUID();
-      const storagePath = `user-images/${studentId}/${imageId}.${ext}`;
+      const supabase = createClient();
+      const results = await Promise.allSettled(
+        uploadFiles.map(async (file) => {
+          const ext = file.name.split(".").pop();
+          const imageId = crypto.randomUUID();
+          const storagePath = `user-images/${studentId}/${imageId}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("sha-gallery")
-        .upload(storagePath, uploadFile);
+          const { error: uploadError } = await supabase.storage
+            .from("sha-gallery")
+            .upload(storagePath, file);
 
-      if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-      const { error: dbError } = await supabase.from("user_images").insert({
-        student_id: studentId,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        storage_path: storagePath,
-        file_name: uploadFile.name,
-        file_size: uploadFile.size,
-        mime_type: uploadFile.type,
-        caption: uploadCaption || null,
-        is_public: uploadPublic,
-      });
+          const { error: dbError } = await supabase.from("user_images").insert({
+            student_id: studentId,
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            storage_path: storagePath,
+            file_name: file.name,
+            file_size: file.size,
+            mime_type: file.type,
+            is_public: uploadPublic,
+            // caption removed per request
+          });
 
-      if (dbError) throw dbError;
+          if (dbError) throw dbError;
+          return storagePath;
+        })
+      );
 
-      // Refresh
+      // Check for failures
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.error("Some uploads failed:", failures);
+        alert(`${failures.length} upload(s) failed`);
+      }
+
+      // Refresh gallery
       const { data } = await supabase
         .from("user_images")
         .select("*")
@@ -119,11 +154,11 @@ export default function GalleryManager({ studentId }: { studentId: string }) {
       }
 
       // Reset
-      setUploadFile(null);
-      setUploadPreview("");
-      setUploadCaption("");
+      setUploadFiles([]);
+      setUploadPreviews([]);
       setUploadPublic(true);
       setUploadOpen(false);
+      alert(`Successfully uploaded ${uploadFiles.length - failures.length} image(s)!`);
     } catch (err: unknown) {
       console.error(err);
       alert(err instanceof Error ? err.message : "Upload failed");
@@ -193,74 +228,136 @@ export default function GalleryManager({ studentId }: { studentId: string }) {
               <Plus className="w-4 h-4" /> Upload Photo
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-hidden flex flex-col">
             <DialogHeader>
-              <DialogTitle>Upload Photo</DialogTitle>
+              <DialogTitle>Upload Photos ({uploadFiles.length})</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              {/* File picker */}
-              {!uploadPreview ? (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full aspect-video rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                >
-                  <Upload className="w-8 h-8" />
-                  <span className="text-sm">Click to select an image</span>
-                </button>
-              ) : (
-                <div className="relative">
-                  <img
-                    src={uploadPreview}
-                    alt="Preview"
-                    className="w-full aspect-video object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUploadFile(null);
-                      setUploadPreview("");
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              {/* Dropzone */}
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                  ${isDragActive
+                    ? 'border-primary bg-primary/10'
+                    : 'border-muted-foreground/25 hover:border-primary/50'
+                  }`}
+              >
+                <input {...getInputProps()} />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                {isDragActive ? (
+                  <p className="text-primary">Drop images here...</p>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      Drag & drop images here, or click to select
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Supports: JPG, PNG, GIF, WebP
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Preview Section */}
+              {uploadPreviews.length > 0 && (
+                <div className="space-y-4">
+                  {/* Show file count */}
+                  <p className="text-sm text-muted-foreground">
+                    {uploadPreviews.length} image(s) selected
+                  </p>
+
+                  {/* Conditional rendering: file list for >20, grid for ≤20 */}
+                  {uploadPreviews.length > 20 ? (
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {uploadFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 rounded bg-muted text-sm">
+                          <span className="truncate flex-1 mr-2">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUploadFiles(prev => prev.filter((_, i) => i !== index));
+                              setUploadPreviews(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            className="text-red-500 hover:text-red-700 flex-shrink-0"
+                            aria-label="Remove file"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-64 overflow-y-auto">
+                      {uploadPreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full aspect-square object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUploadFiles(prev => prev.filter((_, i) => i !== index));
+                              setUploadPreviews(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white 
+                                     flex items-center justify-center text-xs font-bold shadow-lg"
+                            aria-label="Remove image"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Privacy toggle - always visible, no hover needed */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="upload-public">Make images public</Label>
+                    <Switch
+                      id="upload-public"
+                      checked={uploadPublic}
+                      onCheckedChange={setUploadPublic}
+                    />
+                  </div>
+
+                  {/* Action buttons - always visible */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleUpload}
+                      disabled={uploading}
+                      className="flex-1"
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Uploading...
+                        </>
+                      ) : (
+                        `Upload ${uploadFiles.length} Image(s)`
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setUploadFiles([]);
+                        setUploadPreviews([]);
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  </div>
                 </div>
               )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-
-              <div className="space-y-2">
-                <Label htmlFor="upload-caption">Caption (optional)</Label>
-                <Textarea
-                  id="upload-caption"
-                  value={uploadCaption}
-                  onChange={(e) => setUploadCaption(e.target.value)}
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="upload-public">Public</Label>
-                <Switch
-                  id="upload-public"
-                  checked={uploadPublic}
-                  onCheckedChange={setUploadPublic}
-                />
-              </div>
-
-              <Button
-                onClick={handleUpload}
-                disabled={!uploadFile || uploading}
-                className="w-full"
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -283,33 +380,33 @@ export default function GalleryManager({ studentId }: { studentId: string }) {
               {imageUrls[img.id] && (
                 <img
                   src={imageUrls[img.id]}
-                  alt={img.caption || img.file_name}
+                  alt={img.file_name}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
               )}
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+              {/* Action buttons - always visible on mobile, overlay on desktop */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 flex items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={() => toggleVisibility(img)}
-                  className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30"
+                  className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30"
                   title={img.is_public ? "Make private" : "Make public"}
                 >
                   {img.is_public ? (
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-3.5 h-3.5" />
                   ) : (
-                    <EyeOff className="w-4 h-4" />
+                    <EyeOff className="w-3.5 h-3.5" />
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(img)}
-                  className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-red-500/50"
+                  className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-red-500/50"
                   title="Delete"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -317,11 +414,6 @@ export default function GalleryManager({ studentId }: { studentId: string }) {
               {!img.is_public && (
                 <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/50 text-white text-[10px]">
                   Private
-                </div>
-              )}
-              {img.caption && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                  <p className="text-white text-xs truncate">{img.caption}</p>
                 </div>
               )}
             </div>
