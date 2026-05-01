@@ -36,8 +36,19 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         password,
       })
       if (error) throw error
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push('/explore')
+
+      // Check if user is onboarded
+      const { data: student } = await supabase
+        .from('students')
+        .select('is_onboarded')
+        .eq('auth_id', (await supabase.auth.getUser()).data.user?.id || '')
+        .single()
+
+      if (student?.is_onboarded) {
+        router.push('/explore')
+      } else {
+        router.push('/onboarding')
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

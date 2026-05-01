@@ -46,7 +46,10 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
         },
       })
       if (error) throw error
-      router.push('/auth/sign-up-success')
+      // Skip success page - redirect to login with message
+      // alert('Please check your email to confirm your account.')
+      // router.push('/auth/login')
+      router.push('/onboarding')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

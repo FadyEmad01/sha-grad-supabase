@@ -114,7 +114,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,10 +155,10 @@ interface SocialLink {
 const step1Schema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   nickname: z.string().min(1, "Nickname is required"),
-  avatarUrl: z.string().min(1, "Profile photo is required"),
 });
 
 const step2Schema = z.object({
+  avatarUrl: z.string().min(1, "Profile photo is required"),
   graduationProjectSpecialty: z.string().min(1, "Graduation project specialty is required"),
 });
 
@@ -213,7 +212,7 @@ export default function OnboardingForm() {
   const [location, setLocation] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
 
   // Step 2 — Academic
   const [graduationYear, setGraduationYear] = useState("");
@@ -312,6 +311,13 @@ export default function OnboardingForm() {
   }, []);
 
   // ── Avatar upload ─────────────────────────────────────────────────────────
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
 
   const uploadAvatar = async (): Promise<string | null> => {
     if (!avatarFile || !userId) return avatarUrl || null;
@@ -454,57 +460,17 @@ export default function OnboardingForm() {
 
   // ── Validation ────────────────────────────────────────────────────────────
 
-  const validateStep = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (step === 1) {
-      // Use avatarPreview (blob URL from new upload) or avatarUrl (existing DB value)
-      const avatarValue = avatarPreview || avatarUrl;
-      const result = step1Schema.safeParse({ fullName, nickname, avatarUrl: avatarValue });
-      if (!result.success) {
-        result.error.issues.forEach((err) => {
-          const field = err.path.join('.');
-          if (field) newErrors[field] = err.message;
-        });
-      }
-    }
-
-    if (step === 2) {
-      // Use avatarPreview (blob URL from new upload) or avatarUrl (existing DB value)
-      const avatarValue = avatarPreview || avatarUrl;
-      const result = step2Schema.safeParse({ avatarUrl: avatarValue, graduationProjectSpecialty });
-      if (!result.success) {
-        result.error.issues.forEach((err) => {
-          const field = err.path.join('.');
-          if (field) newErrors[field] = err.message;
-        });
-      }
-    }
-
-    if (step === 3) {
-      const result = step3Schema.safeParse({ teamNumberInput });
-      if (!result.success) {
-        result.error.issues.forEach((err) => {
-          const field = err.path.join('.');
-          if (field) newErrors[field] = err.message;
-        });
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const canProceed = (): boolean => {
     if (step === 1) {
-      const hasAvatar = (avatarPreview && avatarPreview.length > 0) || avatarUrl.length > 0;
-      return fullName.trim().length > 0 && nickname.trim().length > 0 && hasAvatar;
+      // full_name and nickname required (NO avatar check here)
+      return fullName.trim().length > 0 && nickname.trim().length > 0;
     }
     if (step === 2) {
-      const hasAvatar = (avatarPreview && avatarPreview.length > 0) || avatarUrl.length > 0;
-      return hasAvatar && graduationProjectSpecialty.trim().length > 0;
+      // avatar_url AND graduation_project_specialty required
+      return avatarUrl.length > 0 && graduationProjectSpecialty.trim().length > 0;
     }
     if (step === 3) {
+      // team_number required
       return teamNumberInput.trim().length > 0;
     }
     return true;
@@ -537,20 +503,22 @@ export default function OnboardingForm() {
               <button
                 key={id}
                 onClick={() => id < step && setStep(id)}
-                className={`flex flex-col items-center gap-1 text-xs transition-colors ${id === step
-                  ? "text-primary font-semibold"
-                  : id < step
-                    ? "text-primary/70 cursor-pointer hover:text-primary"
-                    : "text-muted-foreground cursor-default"
-                  }`}
+                className={`flex flex-col items-center gap-1 text-xs transition-colors ${
+                  id === step
+                    ? "text-primary font-semibold"
+                    : id < step
+                      ? "text-primary/70 cursor-pointer hover:text-primary"
+                      : "text-muted-foreground cursor-default"
+                }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${id === step
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : id < step
-                      ? "border-primary/70 bg-primary/10 text-primary"
-                      : "border-muted-foreground/30 bg-muted text-muted-foreground"
-                    }`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
+                    id === step
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : id < step
+                        ? "border-primary/70 bg-primary/10 text-primary"
+                        : "border-muted-foreground/30 bg-muted text-muted-foreground"
+                  }`}
                 >
                   {id < step ? (
                     <CheckCircle2 className="w-4 h-4" />
@@ -583,21 +551,28 @@ export default function OnboardingForm() {
 
               <CardContent className="space-y-6">
                 {/* Avatar */}
-                <AvatarUpload
-                  preview={avatarPreview}
-                  fallbackText={fullName?.[0]?.toUpperCase() ?? "?"}
-                  onFileSelect={(file: File) => {
-                    setAvatarFile(file);
-                    if (avatarPreview?.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
-                    setAvatarPreview(URL.createObjectURL(file));
-                  }}
-                  onFileRemove={() => {
-                    setAvatarFile(null);
-                    if (avatarPreview && avatarPreview.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
-                    setAvatarPreview(null);
-                  }}
-                  error={errors.avatarUrl}
-                />
+                  <div className="flex flex-col items-center gap-3">
+                    <Avatar className="w-24 h-24 ring-2 ring-primary/20">
+                      <AvatarImage src={avatarPreview} />
+                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                        {fullName?.[0]?.toUpperCase() ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Label
+                      htmlFor="avatar-upload"
+                      className="cursor-pointer inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload photo <span className="text-destructive">*</span>
+                    </Label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </div>
 
                 <Separator />
 
@@ -613,9 +588,6 @@ export default function OnboardingForm() {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
-                    {errors.fullName && (
-                      <p className="text-sm text-destructive">{errors.fullName}</p>
-                    )}
                   </div>
 
                   {/* Nickname */}
@@ -629,9 +601,6 @@ export default function OnboardingForm() {
                       value={nickname}
                       onChange={(e) => setNickname(e.target.value)}
                     />
-                    {errors.nickname && (
-                      <p className="text-sm text-destructive">{errors.nickname}</p>
-                    )}
                   </div>
 
                   {/* Phone */}
@@ -717,9 +686,6 @@ export default function OnboardingForm() {
                         setGraduationProjectSpecialty(e.target.value)
                       }
                     />
-                    {errors.graduationProjectSpecialty && (
-                      <p className="text-sm text-destructive">{errors.graduationProjectSpecialty}</p>
-                    )}
                   </div>
                 </div>
 
@@ -790,11 +756,11 @@ export default function OnboardingForm() {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {/* Team number input */}
-                <div className="space-y-2">
-                  <Label htmlFor="teamNumber">
-                    Graduation Team Number <span className="text-destructive">*</span>
-                  </Label>
+                  {/* Team number input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="teamNumber">
+                      Graduation Team Number <span className="text-destructive">*</span>
+                    </Label>
                   <Input
                     id="teamNumber"
                     type="number"
@@ -803,9 +769,6 @@ export default function OnboardingForm() {
                     value={teamNumberInput}
                     onChange={(e) => setTeamNumberInput(e.target.value)}
                   />
-                  {errors.teamNumberInput && (
-                    <p className="text-sm text-destructive">{errors.teamNumberInput}</p>
-                  )}
                   <p className="text-xs text-muted-foreground">
                     Enter your team number. If it doesn&apos;t exist, a new team
                     will be created automatically.
@@ -918,7 +881,7 @@ export default function OnboardingForm() {
                 {/* Profile summary */}
                 <div className="flex items-center gap-4">
                   <Avatar className="w-16 h-16 ring-2 ring-primary/20">
-                    <AvatarImage src={avatarPreview ?? undefined} />
+                    <AvatarImage src={avatarPreview} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xl">
                       {fullName?.[0]?.toUpperCase() ?? "?"}
                     </AvatarFallback>
@@ -1023,28 +986,15 @@ export default function OnboardingForm() {
 
             {step < STEPS.length ? (
               <Button
-                onClick={() => {
-                  if (validateStep()) {
-                    setStep((s) => s + 1);
-                  }
-                }}
+                onClick={() => setStep((s) => s + 1)}
                 disabled={!canProceed()}
-                // disabled={!validateStep()}
                 className="gap-1"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
               </Button>
             ) : (
-              <Button
-                onClick={() => {
-                  if (validateStep()) {
-                    finish();
-                  }
-                }}
-                disabled={loading || !canProceed()}
-                className="gap-1"
-              >
+              <Button onClick={finish} disabled={loading} className="gap-1">
                 {loading ? "Saving…" : "Finish & Go to Dashboard"}
                 {!loading && <CheckCircle2 className="w-4 h-4" />}
               </Button>
