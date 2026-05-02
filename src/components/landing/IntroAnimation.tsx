@@ -151,7 +151,7 @@ export default function IntroAnimation() {
                 style={{ visibility: isExpanding ? "hidden" : "visible" }}
               >
                 <img
-                  src="/images/hero.jpg"
+                  src="/images/Hero.jpg"
                   alt="hero"
                   className="w-full h-full object-cover"
                 />
@@ -200,7 +200,7 @@ export default function IntroAnimation() {
             onAnimationComplete={handleOverlayComplete}
           >
             <img
-              src="/images/hero.jpg"
+              src="/images/Hero.jpg"
               alt="hero"
               className="w-full h-full object-cover"
             />
