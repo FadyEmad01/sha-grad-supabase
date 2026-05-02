@@ -16,11 +16,12 @@ import { Button } from "@/components/ui/button";
 import TeamMembersGrid from "@/components/team-members-grid";
 import { createClient } from "@/lib/server";
 
-const TEAM_DICEBEAR = "https://api.dicebear.com/9.x/identicon/svg?seed=";
+const TEAM_DICEBEAR = "https://api.dicebear.com/9.x/glass/svg?seed=";
 
-function getTeamAvatarUrl(team: { logo_url: string | null; id: string }) {
+function getTeamAvatarUrl(team: { logo_url: string | null; id: string; team_number: number | null }) {
   if (team.logo_url) return team.logo_url;
-  return `${TEAM_DICEBEAR}${team.id}`;
+  const seed = team.team_number ?? team.id;
+  return `${TEAM_DICEBEAR}${seed}`;
 }
 
 function getInitials(name: string | null) {

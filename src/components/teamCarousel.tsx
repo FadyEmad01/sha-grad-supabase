@@ -13,20 +13,18 @@ export default async function TeamsCarousel() {
     return null;
   }
 
-  const shuffled = [...teams].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 3);
-
   const teamsWithMembers = await Promise.all(
-    selected.map(async (team) => {
+    teams.map(async (team) => {
       const { data: members } = await supabase
         .from("students")
         .select("id, full_name, avatar_url")
-        .eq("team_id", team.id)
-        .limit(3);
+        .eq("team_id", team.id);
+
+      const shuffledMembers = [...(members ?? [])].sort(() => Math.random() - 0.5).slice(0, 3);
 
       return {
         ...team,
-        members: members ?? [],
+        members: shuffledMembers,
       };
     }),
   );
